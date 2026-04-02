@@ -1,80 +1,55 @@
-# minimal-template 
+# minimal-template
 
-**template repo**
+Minimal Python template repository for keeping project-specific code in `src/minimal_template`.
+
+## What changed
+
+This template now uses a modern Python packaging layout:
+
+* package code lives under `src/`
+* `pyproject.toml` is the single source of packaging configuration
+* editable installs work without `setup.py`
+* tests validate the installed package metadata instead of using a dummy failing test
 
 ## Install
-the `env.yml` contains the line `- -e .` which installs the package in developer mode: 
-1. optional: `conda env create -f env.yml`
-2. activate: `conda activate mini_template`
 
-alternative install it in your existing environment::
-1. normal: `python -m pip install .`
-OR in developer mode:
-1. `pip install -e . --user`
+Using conda:
 
+1. `conda env create -f env.yml`
+2. `conda activate mini_template`
 
-## How to use:
-* add some bullets here 
+Using an existing environment:
 
-## FILES
-short explanation of all files in the repo:
+1. `python -m pip install -e .`
 
-* `minimal_template/`: folder contains [code, modules]
-    * `__init__`: init file
-* `tests/`: folder contains test files 
-    * `test_with_pytest.py`: example file to test tesing via e.g. pytest
-* `env.yml`: YAML environment file than specifies dependencies from other packages
-* `LICENSE`: LICENSE File
-* `pyproject.toml`: contains dependencies and various settings (black, ruff, ...) for the project
-* `README.md`: the readme
-* `setup.py`: needed for install via pip
+Using uv as package manager (and dev mode):
 
-## Dependencies
+1. `uv sync --dev`
 
-* plotting related:
-    * **matplotlib**: used for plotting
-    * **plotly**: fast interactive plotting
-* jupyter notebook related:
-    * **ipykernel**: to be able to load the environment in jupyterlab
-    * **jupyterlab**: to run notebooks
-    * **jupyter_contrib_nbextensions**: to enable "strip-notebook-output clean"
-    * **nbconvert**: to enable "strip-notebook-output clean"
-* formatting + linting:
-    * **ruff**
-    * **pylint**
-* **numpy**: for numerical computations
-* **pathlib**: for a portable way to navigate file-systems
-* **pandas**: to use DataFrame objects 
-* **tabulate**: to create tables
+## Repository layout
 
+* `src/minimal_template/`: package source code
+* `tests/`: pytest-based tests
+* `env.yml`: optional conda environment with notebook and analysis tooling
+* `pyproject.toml`: package metadata, build backend, and tool configuration
+* `README.md`: project overview and setup notes
 
-## Explanation:
-I will update the package the more I understand of the other template files and functions (poetry, tox vs. pytest, black)
+## Recommended defaults
 
-* the `setup.py` file is only needed for developer mode install
-    * in fact the `pyproject.toml` contains a block `[build-system]` with some flit-stuff that should enable developer-mode somehow without `setup.py` file (read)
+* keep runtime dependencies in `[project.dependencies]`
+* keep development-only tools in `[dependency-groups].dev` when using uv
+* keep notebooks and analysis tooling out of the package metadata unless they are runtime requirements
+* prefer `python -m pip install -e .` for local development
 
-## Developer notes
+## Notebook Git filter
 
-* if the package depends on a custum package `my_other_pack` that you want to edit during development
-    1. specify it in the `env.yml` file (so users have it in their env)
-    2. when doing `conda create -f env.yml` it will get installed via pip  (good for the users, bad for you since the path is somewhere in your env-directory)
-    3. now reinstall with your local repo folder `my_other_pack` by:
-        * activate environment `conda env create -f env.yml`
-        * uninstall the package `pip uninstall my_other_pack`
-        * change directory to your local installation `cd /PATH/to/your/local/my_other_pack`
-        * pip-install it in editable mode: `pip install -e . --user`
+If you keep notebooks in [./notebooks](./notebooks), the included [./notebooks/.gitattributes](./notebooks/.gitattributes) can be used together with a local Git filter that strips notebook output on commit:
 
-### Git settings
-If you plan having jupyter-notebooks in your repository, place them in the [./notebooks](./notebooks) folder.
-The below settings are inspired by this [stackoverflow post](https://stackoverflow.com/posts/58004619/revisions)
-* this folder contains the file [./notebooks/.gitattributes](./notebooks/.gitattributes) that will run at each add of an `*.ipynb` file the filter `strip-notebook-output`.
-    * note that it will only remove the output for the git-commit BUT the output in your local notebook remains.
-* the filter `strip-notebook-output` needs to be defined in your local `.git/config` or global `.gitconfig` as:
+```gitattributes
+*.ipynb filter=strip-notebook-output
 ```
+
+```ini
 [filter "strip-notebook-output"]
     clean = "jupyter nbconvert --ClearOutputPreprocessor.enabled=True --to=notebook --stdin --stdout --log-level=ERROR"
 ```
-* in order to run this you need to have the following packages installed
-    * `conda install -c conda-forge jupyter_contrib_nbextensions`
-    * `conda install nbconvert`

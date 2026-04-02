@@ -1,42 +1,45 @@
 [project]
 name = "minimal_template"
-description = "minimal_template example package"
-version = "0.1.0"
+description = "Minimal Python package template for custom project code."
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["version"]
 authors = [
     { name = "Pascal P. Klamser", email = "klamser@physik.hu-berlin.de" }
 ]
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "numpy",
-    "pathlib"
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest",
-    "tox",
+    "ruff",
+    "build",
 ]
 
-# this is meant to enable developer mode-install via pip
 [build-system]
-build-backend = "flit_core.buildapi"
-requires = ["flit_core >=3.2,<4"]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 100
+[tool.setuptools]
+package-dir = {"" = "src"}
 
-[tool.isort]
-profile = "black"
-line_length = 100
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "minimal_template.__version__"}
 
 [tool.ruff]
 line-length = 100
 extend-include = ["*.ipynb"]
 
-[tool.pylint.BASIC]
-good-names = "df,y,X,to,cc,f,ax,i,a,b,F,GT_dy,mu,wk,k,t,estimate_R,GT_dx,tw,R_posterior,y_X_split"
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
 
-[tool.pylint.TYPECHECK]
-signature-mutators = "click.decorators.option"
-
-[tool.pylint."MESSAGES CONTROL"]
-disable = "missing-class-docstring,missing-function-docstring,missing-module-docstring,too-few-public-methods"
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]

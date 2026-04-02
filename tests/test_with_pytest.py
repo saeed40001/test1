@@ -1,8 +1,7 @@
-# dummy function to see if python works
+from importlib.metadata import version
 
-def test_always_passes():
-    assert True
+from minimal_template import __version__
 
 
-def test_always_fails():
-    assert False
+def test_package_version_matches_metadata():
+    assert version("minimal_template") == __version__
