@@ -1,0 +1,31 @@
+name: دانلود و ذخیره فایل
+
+on:
+  workflow_dispatch:
+    inputs:
+      download_url:
+        description: 'لینک مستقیم فایل رو اینجا بچسبون'
+        required: true
+        type: string
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: خروج از مخزن
+        uses: actions/checkout@v4
+
+      - name: دانلود فایل
+        run: |
+          wget "${{ github.event.inputs.download_url }}" -O downloaded_file
+          echo "فایل با موفقیت دانلود شد."
+
+      - name: آپلود فایل به مخزن
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add downloaded_file
+          git commit -m "دانلود و اضافه کردن فایل جدید"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
