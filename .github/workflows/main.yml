@@ -1,35 +1,33 @@
 name: Download and Commit File
 
-# این بخش تعیین میکند که اکشن چطور شروع شود
 on:
-  workflow_dispatch: # با این دستور میتوانید اکشن را به صورت دستی از تب Actions اجرا کنید
+  workflow_dispatch:
     inputs:
       file_url:
-        description: 'لینک فایلی که میخواهید دانلود شود'
+        description: 'لینک فایل برای دانلود'
         required: true
         type: string
       file_name:
-        description: 'نام فایل نهایی ذخیره شده (مثلاً data.json)'
+        description: 'نام فایل ذخیره شده'
         required: true
         type: string
+
+# مجوز نوشتن روی مخزن (رفع خطای 128)
+permissions:
+  contents: write
 
 jobs:
   download-and-commit:
     runs-on: ubuntu-latest
     steps:
-      # مرحله ۱: دریافت کدهای مخزن
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # مرحله ۲: دانلود فایل از لینک ورودی
-      - name: Download file from URL
+      - name: Download file
         run: curl -L -o "${{ github.event.inputs.file_name }}" "${{ github.event.inputs.file_url }}"
 
-      # مرحله ۳: افزودن و ثبت تغییرات در گیت
-      - name: Commit and push file to repository
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ github.event.inputs.file_name }}"
-          git commit -m "Add downloaded file: ${{ github.event.inputs.file_name }}" || echo "No changes to commit"
-          git push
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Add ${{ github.event.inputs.file_name }}"
+          file_pattern: "${{ github.event.inputs.file_name }}"
