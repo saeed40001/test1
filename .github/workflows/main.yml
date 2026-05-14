@@ -1,27 +1,36 @@
-name: Download and Upload File
+name: Download and Commit File
 
 on:
   workflow_dispatch:
     inputs:
       file_url:
-        description: 'لینک فایل برای دانلود'
+        description: 'لینک مستقیم فایل'
         required: true
+        type: string
 
 jobs:
-  download:
+  download-and-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Download file
+      - name: Download and get original filename
         run: |
-          wget "${{ github.event.inputs.file_url }}" -O downloaded_file
+          # دانلود فایل و استخراج اسمش از هدر HTTP
+          wget --content-disposition "${{ github.event.inputs.file_url }}" -P .
+          
+          # اگه wget نتونست اسم رو تشخیص بده، از خود لینک استخراج کن
+          if [ ! -f "$(basename "${{ github.event.inputs.file_url }}")" ]; then
+            curl -L -O "${{ github.event.inputs.file_url }}"
+          fi
+        working-directory: ${{ github.workspace }}
 
       - name: Commit and push file
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add downloaded_file
-          git commit -m "Add downloaded file" || echo "No changes"
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          # اضافه کردن همه فایل‌های جدید
+          git add -A
+          git commit -m "Download and add file from ${{ github.event.inputs.file_url }}"
           git push
