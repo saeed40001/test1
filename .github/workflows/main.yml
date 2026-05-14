@@ -1,31 +1,27 @@
-name: دانلود و ذخیره در مخزن
+name: Download and Upload File
 
 on:
   workflow_dispatch:
     inputs:
-      download_url:
-        description: 'لینک مستقیم فایل رو اینجا بچسبون'
-        required: true
-      file_name:
-        description: 'اسم فایل خروجی (مثلاً myfile.zip)'
+      file_url:
+        description: 'لینک فایل برای دانلود'
         required: true
 
 jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: دریافت فایل‌های مخزن
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: دانلود فایل
-        run: wget -O "${{ github.event.inputs.file_name }}" "${{ github.event.inputs.download_url }}"
+      - name: Download file
+        run: |
+          wget "${{ github.event.inputs.file_url }}" -O downloaded_file
 
-      - name: ذخیره فایل در مخزن
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push file
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${{ github.event.inputs.file_name }}"
-          git commit -m "Add downloaded file"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add downloaded_file
+          git commit -m "Add downloaded file" || echo "No changes"
           git push
