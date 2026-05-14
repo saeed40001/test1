@@ -1,10 +1,15 @@
 name: Download and Commit File
 
+# این بخش تعیین میکند که اکشن چطور شروع شود
 on:
-  workflow_dispatch:
+  workflow_dispatch: # با این دستور میتوانید اکشن را به صورت دستی از تب Actions اجرا کنید
     inputs:
       file_url:
-        description: 'لینک مستقیم فایل'
+        description: 'لینک فایلی که میخواهید دانلود شود'
+        required: true
+        type: string
+      file_name:
+        description: 'نام فایل نهایی ذخیره شده (مثلاً data.json)'
         required: true
         type: string
 
@@ -12,25 +17,19 @@ jobs:
   download-and-commit:
     runs-on: ubuntu-latest
     steps:
+      # مرحله ۱: دریافت کدهای مخزن
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download and get original filename
-        run: |
-          # دانلود فایل و استخراج اسمش از هدر HTTP
-          wget --content-disposition "${{ github.event.inputs.file_url }}" -P .
-          
-          # اگه wget نتونست اسم رو تشخیص بده، از خود لینک استخراج کن
-          if [ ! -f "$(basename "${{ github.event.inputs.file_url }}")" ]; then
-            curl -L -O "${{ github.event.inputs.file_url }}"
-          fi
-        working-directory: ${{ github.workspace }}
+      # مرحله ۲: دانلود فایل از لینک ورودی
+      - name: Download file from URL
+        run: curl -L -o "${{ github.event.inputs.file_name }}" "${{ github.event.inputs.file_url }}"
 
-      - name: Commit and push file
+      # مرحله ۳: افزودن و ثبت تغییرات در گیت
+      - name: Commit and push file to repository
         run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-          # اضافه کردن همه فایل‌های جدید
-          git add -A
-          git commit -m "Download and add file from ${{ github.event.inputs.file_url }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ github.event.inputs.file_name }}"
+          git commit -m "Add downloaded file: ${{ github.event.inputs.file_name }}" || echo "No changes to commit"
           git push
