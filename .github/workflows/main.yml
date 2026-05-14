@@ -1,4 +1,4 @@
-name: دانلود فایل
+name: دانلود ساده
 
 on:
   workflow_dispatch:
@@ -11,13 +11,16 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: دریافت فایل از اینترنت
-        run: |
-          wget "${{ github.event.inputs.download_url }}" -O myfile
-          echo "دانلود تمام شد."
+      - name: مرحله صفر: خواندن مخزن
+        uses: actions/checkout@v4
 
-      - name: ذخیره فایل در مخزن
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          file_pattern: 'myfile'
-          commit_message: 'فایل جدید اضافه شد'
+      - name: مرحله یک: دانلود فایل
+        run: wget "${{ github.event.inputs.download_url }}" -O myfile
+
+      - name: مرحله دو: اضافه کردن به مخزن
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add myfile
+          git commit -m "Add file"
+          git push
