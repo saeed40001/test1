@@ -1,4 +1,4 @@
-name: دانلود و ذخیره در مخزن
+name: دانلود و ذخیره فایل (روش استاندارد)
 
 on:
   workflow_dispatch:
@@ -14,20 +14,16 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: دانلود و آپلود مستقیم فایل
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
+      - name: دریافت فایل‌های مخزن
+        uses: actions/checkout@v4
+
+      - name: دانلود فایل از لینک
         run: |
-          # دانلود فایل
-          wget -O "${{ github.event.inputs.file_name }}" "${{ github.event.inputs.download_url }}"
-          
-          # تبدیل فایل به Base64
-          CONTENT=$(base64 -w 0 "${{ github.event.inputs.file_name }}")
-          
-          # آپلود مستقیم با API گیت‌هاب
-          curl -X PUT \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/contents/${{ github.event.inputs.file_name }} \
-            -d "{\"message\":\"Add file\",\"content\":\"$CONTENT\"}"
+          wget "${{ github.event.inputs.download_url }}" -O "${{ github.event.inputs.file_name }}"
+          echo "فایل دانلود شد."
+
+      - name: ذخیره فایل در مخزن
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'دانلود و اضافه کردن فایل جدید'
+          file_pattern: ${{ github.event.inputs.file_name }}
