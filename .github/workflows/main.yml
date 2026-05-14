@@ -1,10 +1,13 @@
-name: دانلود و ذخیره فایل (تشخیص خودکار اسم)
+name: دانلود و ذخیره در مخزن
 
 on:
   workflow_dispatch:
     inputs:
       download_url:
         description: 'لینک مستقیم فایل رو اینجا بچسبون'
+        required: true
+      file_name:
+        description: 'اسم فایل خروجی (مثلاً myfile.zip)'
         required: true
 
 jobs:
@@ -14,18 +17,15 @@ jobs:
       - name: دریافت فایل‌های مخزن
         uses: actions/checkout@v4
 
-      - name: دانلود فایل و تنظیم اسم خروجی
-        run: |
-          # اسم فایل رو از لینک استخراج کن
-          FILENAME=$(basename "${{ github.event.inputs.download_url }}")
-          echo "FILE_NAME=$FILENAME" >> $GITHUB_ENV
-          
-          # فایل رو با اسم درست دانلود کن
-          wget "${{ github.event.inputs.download_url }}" -O "$FILENAME"
-          echo "فایل با اسم $FILENAME دانلود شد."
+      - name: دانلود فایل
+        run: wget -O "${{ github.event.inputs.file_name }}" "${{ github.event.inputs.download_url }}"
 
       - name: ذخیره فایل در مخزن
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'دانلود و اضافه کردن فایل جدید'
-          file_pattern: ${{ env.FILE_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${{ github.event.inputs.file_name }}"
+          git commit -m "Add downloaded file"
+          git push
